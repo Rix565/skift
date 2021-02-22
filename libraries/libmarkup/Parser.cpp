@@ -1,40 +1,40 @@
 #include <assert.h>
-#include <libsystem/Logger.h>
-#include <libutils/NumberScanner.h>
-#include <libutils/Scanner.h>
-#include <libutils/ScannerUtils.h>
-#include <libutils/StringBuilder.h>
+#include <string.h>
+
 #include <libutils/Strings.h>
 #include <libutils/unicode/Codepoint.h>
-#include <string.h>
+#include <libio/Scanner.h>
+#include <libio/Write.h>
+#include <libsystem/Logger.h>
+#include <libjson/EscapeSequence.h>
 
 #include <libmarkup/Markup.h>
 
 namespace markup
 {
 
-static void whitespace(Scanner &scan)
+static void whitespace(IO::Scanner &scan)
 {
     scan.eat(Strings::WHITESPACE);
 }
 
-static String identifier(Scanner &scan)
+static String identifier(IO::Scanner &scan)
 {
-    StringBuilder builder{};
+    IO::MemoryWriter memory{};
 
     while (scan.current_is(Strings::ALL_ALPHA) &&
            scan.do_continue())
     {
-        builder.append(scan.current());
+        IO::write_char(memory, scan.current());
         scan.forward();
     }
 
-    return builder.finalize();
+    return memory.string();
 }
 
-static String string(Scanner &scan)
+static String string(IO::Scanner &scan)
 {
-    StringBuilder builder{};
+    IO::MemoryWriter memory{};
 
     scan.skip('"');
 
@@ -43,21 +43,21 @@ static String string(Scanner &scan)
     {
         if (scan.current() == '\\')
         {
-            builder.append(scan_json_escape_sequence(scan));
+            IO::write_cstring(memory, Json::escape_sequence(scan));
         }
         else
         {
-            builder.append(scan.current());
+            IO::write_char(memory, scan.current());
             scan.forward();
         }
     }
 
     scan.skip('"');
 
-    return builder.finalize();
+    return memory.string();
 }
 
-static void attribute(Scanner &scan, Attributes &attr)
+static void attribute(IO::Scanner &scan, Attributes &attr)
 {
     auto ident = identifier(scan);
 
@@ -74,7 +74,7 @@ static void attribute(Scanner &scan, Attributes &attr)
     }
 }
 
-static Node opening_tag(Scanner &scan)
+static Node opening_tag(IO::Scanner &scan)
 {
     if (!scan.skip('<'))
     {
@@ -110,7 +110,7 @@ static Node opening_tag(Scanner &scan)
     return {type, flags, move(attr)};
 }
 
-static void closing_tag(Scanner &scan, const Node &node)
+static void closing_tag(IO::Scanner &scan, const Node &node)
 {
     scan.skip('<');
     scan.skip('/');
@@ -132,7 +132,7 @@ static void closing_tag(Scanner &scan, const Node &node)
     scan.skip('>');
 }
 
-static Node node(Scanner &scan)
+static Node node(IO::Scanner &scan)
 {
     whitespace(scan);
 
@@ -160,23 +160,9 @@ static Node node(Scanner &scan)
     return n;
 }
 
-Node parse(Scanner &scan)
+Node parse(IO::Scanner &scan)
 {
-    scan_skip_utf8bom(scan);
-    return node(scan);
-}
-
-Node parse_file(String path)
-{
-    __cleanup(stream_cleanup) Stream *json_file = stream_open(path.cstring(), OPEN_READ | OPEN_BUFFERED);
-
-    if (handle_has_error(json_file))
-    {
-        return {"error"};
-    }
-
-    StreamScanner scan{json_file};
-    scan_skip_utf8bom(scan);
+    scan.skip_utf8bom();
     return node(scan);
 }
 

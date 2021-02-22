@@ -2,6 +2,8 @@
 #include <stdio.h>
 
 #include <libutils/HashMap.h>
+#include <libio/Format.h>
+#include <libio/Read.h>
 #include <libsystem/Logger.h>
 #include <libsystem/Path.h>
 #include <libsystem/Result.h>
@@ -12,18 +14,17 @@ static HashMap<String, RefPtr<Font>> _fonts;
 
 static ResultOr<Vector<Glyph>> font_load_glyph(String name)
 {
-    char glyph_path[PATH_LENGTH];
-    snprintf(glyph_path, PATH_LENGTH, "/Files/Fonts/%s.glyph", name.cstring());
+    auto glyph_path = IO::format("/Files/Fonts/{}.glyph", name);
 
     Glyph *glyph_buffer = nullptr;
     size_t glyph_size = 0;
-    System::File glyph_file{glyph_path};
-    Result result = glyph_file.read_all((void **)&glyph_buffer, &glyph_size);
 
-    if (result != SUCCESS)
+    System::File glyph_file{glyph_path, OPEN_READ};
+    auto slice_or_result = IO::read_slice(glyph_file);
+
+    if (!slice_or_result)
     {
-        logger_error("Failed to load glyph from %s: %s", glyph_path, handle_error_string(result));
-        return result;
+        return slice_or_result.result();
     }
 
     return Vector(ADOPT, glyph_buffer, glyph_size / sizeof(Glyph));

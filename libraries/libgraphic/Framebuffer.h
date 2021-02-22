@@ -1,14 +1,14 @@
 #pragma once
 
+#include <libutils/OwnPtr.h>
+#include <libsystem/Handle.h>
 #include <libgraphic/Bitmap.h>
 #include <libgraphic/Painter.h>
-#include <libsystem/io/Handle.h>
-#include <libutils/OwnPtr.h>
 
 class Framebuffer
 {
 private:
-    Handle _handle;
+    System::Handle _handle;
 
     RefPtr<Bitmap> _bitmap;
     Painter _painter;
@@ -22,9 +22,7 @@ public:
 
     Recti resolution() { return _bitmap->bound(); }
 
-    Framebuffer(Handle handle, RefPtr<Bitmap> bitmap);
-
-    ~Framebuffer();
+    Framebuffer(System::Handle &&handle, RefPtr<Bitmap> bitmap);
 
     Result set_resolution(Vec2i size);
 

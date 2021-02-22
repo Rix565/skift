@@ -2,10 +2,10 @@
 
 #include <libutils/Enum.h>
 #include <libutils/HashMap.h>
-#include <libutils/Prettifier.h>
-#include <libutils/Scanner.h>
 #include <libutils/String.h>
 #include <libutils/Vector.h>
+
+#include <libio/Prettifier.h>
 
 namespace markup
 {
@@ -116,10 +116,8 @@ public:
     }
 };
 
-Node parse(Scanner &scan);
+Node parse(IO::Scanner &scan);
 
-Node parse_file(String path);
-
-void prettify(Prettifier &pretty, Node &node);
+void prettify(IO::Prettifier &pretty, Node &node);
 
 } // namespace markup

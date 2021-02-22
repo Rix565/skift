@@ -2,27 +2,26 @@
 #include <abi/IOCall.h>
 #include <abi/Paths.h>
 
-#include <libgraphic/Framebuffer.h>
 #include <libsystem/Logger.h>
 #include <libsystem/Result.h>
 #include <libsystem/core/Plugs.h>
+#include <libgraphic/Framebuffer.h>
 
 ResultOr<OwnPtr<Framebuffer>> Framebuffer::open()
 {
-    Handle handle;
-    __plug_handle_open(&handle, FRAMEBUFFER_DEVICE_PATH, OPEN_READ | OPEN_WRITE);
+    System::Handle handle{FRAMEBUFFER_DEVICE_PATH, OPEN_READ | OPEN_WRITE};
 
-    if (handle_has_error(&handle))
+    if (!handle.valid())
     {
-        return handle_get_error(&handle);
+        return handle.result();
     }
 
     IOCallDisplayModeArgs mode_info = {};
-    __plug_handle_call(&handle, IOCALL_DISPLAY_GET_MODE, &mode_info);
+    auto result = handle.call(IOCALL_DISPLAY_GET_MODE, &mode_info);
 
-    if (handle_has_error(&handle))
+    if (result != SUCCESS)
     {
-        return handle_get_error(&handle);
+        return result;
     }
 
     auto bitmap_or_error = Bitmap::create_shared(mode_info.width, mode_info.height);
@@ -32,19 +31,18 @@ ResultOr<OwnPtr<Framebuffer>> Framebuffer::open()
         return bitmap_or_error.result();
     }
 
-    return own<Framebuffer>(handle, bitmap_or_error.take_value());
+    return own<Framebuffer>(move(handle), bitmap_or_error.take_value());
 }
 
-Framebuffer::Framebuffer(Handle handle, RefPtr<Bitmap> bitmap)
-    : _handle(handle),
-      _bitmap(bitmap),
-      _painter(bitmap)
+Framebuffer::Framebuffer(System::Handle &&handle, RefPtr<Bitmap> bitmap)
+    : _handle{move(handle)},
+      _bitmap{bitmap},
+      _painter{bitmap}
 {
 }
 
 Framebuffer::~Framebuffer()
 {
-    __plug_handle_close(&_handle);
 }
 
 Result Framebuffer::set_resolution(Vec2i size)
@@ -58,11 +56,11 @@ Result Framebuffer::set_resolution(Vec2i size)
 
     IOCallDisplayModeArgs mode_info = (IOCallDisplayModeArgs){size.x(), size.y()};
 
-    __plug_handle_call(&_handle, IOCALL_DISPLAY_SET_MODE, &mode_info);
+    auto result = _handle.call(IOCALL_DISPLAY_SET_MODE, &mode_info);
 
-    if (handle_has_error(&_handle))
+    if (result != SUCCESS)
     {
-        return handle_get_error(&_handle);
+        return result;
     }
 
     _bitmap = bitmap_or_result.take_value();
@@ -127,11 +125,12 @@ void Framebuffer::blit()
         args.blit_width = bound.width();
         args.blit_height = bound.height();
 
-        __plug_handle_call(&_handle, IOCALL_DISPLAY_BLIT, &args);
+        auto result = _handle.call(IOCALL_DISPLAY_BLIT, &args);
 
-        if (handle_has_error(&_handle))
+        if (result != SUCCESS)
         {
-            handle_printf_error(&_handle, "Failed to iocall device " FRAMEBUFFER_DEVICE_PATH);
+            logger_error("Failed to iocall device " FRAMEBUFFER_DEVICE_PATH ": %s", get_result_description(result));
+            return Iteration::STOP;
         }
 
         return Iteration::CONTINUE;
