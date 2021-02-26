@@ -1,8 +1,8 @@
 #pragma once
 
 #include <libsystem/eventloop/Notifier.h>
-#include <libsystem/io/Connection.h>
 #include <libsystem/io/Socket.h>
+#include <libsystem/io_new/Connection.h>
 
 #include <libutils/Callback.h>
 #include <libutils/ResultOr.h>
@@ -14,7 +14,7 @@ template <typename Protocol>
 class Peer
 {
 private:
-    Connection *_connection = nullptr;
+    System::Connection _connection;
     OwnPtr<Notifier> _notifier = nullptr;
 
 public:
@@ -23,9 +23,9 @@ public:
         return _connection != nullptr;
     }
 
-    Peer(Connection *connection)
+    Peer(Connection &&connection)
+        : _connection{move{connection}}
     {
-        _connection = connection;
         _notifier = own<Notifier>(HANDLE(_connection), POLL_READ, [this]() {
             auto result_or_message = Protocol::decode_message(_connection);
 
@@ -47,11 +47,6 @@ public:
 
     Result send(const Protocol::Message &message)
     {
-        if (!_connection)
-        {
-            return ERR_STREAM_CLOSED;
-        }
-
         auto result = Protocol::encode_message(_connection, message);
 
         if (result != SUCCESS)

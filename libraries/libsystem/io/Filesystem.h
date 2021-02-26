@@ -1,34 +1,21 @@
 #pragma once
 
-#include <abi/Filesystem.h>
-
+#include <libutils/String.h>
 #include <libsystem/Result.h>
-
-Result filesystem_link(const char *oldpath, const char *newpath);
-
-Result filesystem_unlink(const char *path);
-
-Result filesystem_mkdir(const char *path);
-
-Result filesystem_mkpipe(const char *path);
-
-Result filesystem_rename(const char *old_path, const char *new_path);
-
-bool filesystem_exist(const char *path, FileType type);
 
 namespace System
 {
 
-Result link(const char *oldpath, const char *newpath);
+Result link(const String &old_path, const String &new_path);
 
-Result unlink(const char *path);
+Result unlink(const String &path);
 
-Result mkdir(const char *path);
+Result mkdir(const String &path);
 
-Result mkpipe(const char *path);
+Result mkpipe(const String &path);
 
-Result rename(const char *old_path, const char *new_path);
+Result rename(const String &old_path, const String &new_path);
 
-bool exist(const char *path, FileType type);
+bool exist(const String &path, FileType type);
 
 } // namespace System

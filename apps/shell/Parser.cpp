@@ -2,7 +2,6 @@
 #include <libsystem/utils/BufferBuilder.h>
 
 #include <libutils/Scanner.h>
-#include <libutils/ScannerUtils.h>
 
 #include "shell/Nodes.h"
 

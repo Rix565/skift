@@ -6,6 +6,7 @@
 #include <libutils/Vector.h>
 
 #include <libio/Prettifier.h>
+#include <libio/Scanner.h>
 
 namespace markup
 {

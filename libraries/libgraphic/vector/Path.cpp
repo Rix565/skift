@@ -1,17 +1,17 @@
+#include <libio/NumberScanner.h>
 #include <libgraphic/vector/Path.h>
-#include <libutils/ScannerUtils.h>
 
 namespace Graphic
 {
 static constexpr auto WHITESPACE = "\n\r\t ";
 static constexpr auto OPERATIONS = "MmZzLlHhVvCcSsQqTtAa";
 
-static void whitespace(Scanner &scan)
+static void whitespace(IO::Scanner &scan)
 {
     scan.eat(WHITESPACE);
 }
 
-static void whitespace_or_comma(Scanner &scan)
+static void whitespace_or_comma(IO::Scanner &scan)
 {
     whitespace(scan);
 
@@ -21,17 +21,22 @@ static void whitespace_or_comma(Scanner &scan)
     }
 }
 
-static Vec2f coordinate(Scanner &scan)
+static float number(IO::Scanner &scan)
 {
-    auto x = scan_float(scan);
+    return *IO::NumberScanner::decimal().scan_float(scan);
+}
+
+static Vec2f coordinate(IO::Scanner &scan)
+{
+    auto x = number(scan);
     whitespace_or_comma(scan);
-    auto y = scan_float(scan);
+    auto y = number(scan);
     whitespace_or_comma(scan);
 
     return Vec2f{(float)x, (float)y};
 }
 
-static int arcflags(Scanner &scan)
+static int arcflags(IO::Scanner &scan)
 {
     int flags = 0;
 
@@ -55,7 +60,7 @@ static int arcflags(Scanner &scan)
     return flags;
 }
 
-static void operation(Scanner &scan, Path &path, char operation)
+static void operation(IO::Scanner &scan, Path &path, char operation)
 {
     switch (operation)
     {
@@ -101,19 +106,19 @@ static void operation(Scanner &scan, Path &path, char operation)
         break;
 
     case 'H':
-        path.hline_to(scan_float(scan));
+        path.hline_to(number(scan));
         break;
 
     case 'h':
-        path.hline_to_relative(scan_float(scan));
+        path.hline_to_relative(number(scan));
         break;
 
     case 'V':
-        path.vline_to(scan_float(scan));
+        path.vline_to(number(scan));
         break;
 
     case 'v':
-        path.vline_to_relative(scan_float(scan));
+        path.vline_to_relative(number(scan));
         break;
 
     case 'C':
@@ -188,13 +193,13 @@ static void operation(Scanner &scan, Path &path, char operation)
 
     case 'A':
     {
-        auto rx = scan_float(scan);
+        auto rx = number(scan);
         whitespace_or_comma(scan);
 
-        auto ry = scan_float(scan);
+        auto ry = number(scan);
         whitespace_or_comma(scan);
 
-        auto a = scan_float(scan);
+        auto a = number(scan);
         whitespace_or_comma(scan);
 
         auto flags = arcflags(scan);
@@ -207,13 +212,13 @@ static void operation(Scanner &scan, Path &path, char operation)
 
     case 'a':
     {
-        auto rx = scan_float(scan);
+        auto rx = number(scan);
         whitespace_or_comma(scan);
 
-        auto ry = scan_float(scan);
+        auto ry = number(scan);
         whitespace_or_comma(scan);
 
-        auto a = scan_float(scan);
+        auto a = number(scan);
         whitespace_or_comma(scan);
 
         auto flags = arcflags(scan);
@@ -229,7 +234,7 @@ static void operation(Scanner &scan, Path &path, char operation)
     }
 }
 
-Path Path::parse(Scanner &scan)
+Path Path::parse(IO::Scanner &scan)
 {
     Path path;
 

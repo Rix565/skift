@@ -1,27 +1,23 @@
+#include <libio/Format.h>
 #include <libmarkup/Markup.h>
-#include <libutils/StringBuilder.h>
 
 namespace markup
 {
 
-void prettify(Prettifier &pretty, Node &node)
+void prettify(IO::Prettifier &pretty, Node &node)
 {
-    pretty.append('<');
+    IO::write_char(pretty, '<');
 
     pretty.color_depth();
-    pretty.append(node.type());
+    IO::write_string(pretty, node.type());
     pretty.color_clear();
 
     node.foreach_attributes([&](auto &key, auto &value) {
-        pretty.append(' ');
-        pretty.append(key);
+        IO::format(pretty, " {}", key);
 
         if (value != "")
         {
-            pretty.append('=');
-            pretty.append('"');
-            pretty.append(value);
-            pretty.append('"');
+            IO::format(pretty, "=\"{}\"", value);
         }
 
         return Iteration::CONTINUE;
@@ -29,12 +25,12 @@ void prettify(Prettifier &pretty, Node &node)
 
     if (node.count_child() == 0)
     {
-        pretty.append("/>");
+        IO::write_cstring(pretty, "/>");
         return;
     }
     else
     {
-        pretty.append('>');
+        IO::write_char(pretty, '>');
     }
 
     node.foreach_child([&](auto &child) {
@@ -50,13 +46,13 @@ void prettify(Prettifier &pretty, Node &node)
 
     pretty.ident();
 
-    pretty.append("</");
+    IO::write_cstring(pretty, "</");
 
     pretty.color_depth();
-    pretty.append(node.type());
+    IO::write_string(pretty, node.type());
     pretty.color_clear();
 
-    pretty.append('>');
+    IO::write_char(pretty, '>');
 }
 
 } // namespace markup

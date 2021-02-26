@@ -16,18 +16,20 @@ Result Protocol::encode_message(Connection *connection, const Message &message)
 
     if (message.path)
     {
-        Prettifier pretty;
+        IO::MemoryWriter memory;
+        IO::Prettifier pretty{memory};
         message.path->prettify(pretty);
-        path_buffer = pretty.finalize();
+        path_buffer = memory.string();
     }
 
     String payload_buffer = "";
 
     if (message.payload)
     {
-        Prettifier pretty;
+        IO::MemoryWriter memory;
+        IO::Prettifier pretty{memory};
         Json::prettify(pretty, *message.payload);
-        payload_buffer = pretty.finalize();
+        payload_buffer = memory.string();
     }
 
     MessageHeader header;

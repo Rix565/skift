@@ -49,12 +49,17 @@ public:
         if (_handle != HANDLE_INVALID_ID)
         {
             hj_handle_close(_handle);
-            _handle = -1;
+            _handle = HANDLE_INVALID_ID;
         }
     }
 
     ResultOr<size_t> read(void *buffer, size_t size)
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         size_t data_read = 0;
         _result = hj_handle_read(_handle, buffer, size, &data_read);
 
@@ -70,6 +75,11 @@ public:
 
     ResultOr<size_t> write(const void *buffer, size_t size)
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         size_t data_written = 0;
         _result = hj_handle_write(_handle, buffer, size, &data_written);
 
@@ -85,18 +95,33 @@ public:
 
     Result call(IOCall request, void *args)
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         _result = hj_handle_call(_handle, request, args);
         return _result;
     }
 
     Result seek(int offset, HjWhence whence)
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         _result = hj_handle_seek(_handle, offset, whence);
         return _result;
     }
 
     ResultOr<int> tell(HjWhence whence)
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         int offset = 0;
         _result = hj_handle_tell(_handle, whence, &offset);
 
@@ -112,6 +137,11 @@ public:
 
     ResultOr<FileState> stat()
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         FileState stat{};
         _result = hj_handle_stat(_handle, &stat);
 
@@ -127,6 +157,11 @@ public:
 
     ResultOr<Handle> accept()
     {
+        if (!valid())
+        {
+            return ERR_STREAM_CLOSED;
+        }
+
         int connection_handle;
         _result = hj_handle_accept(_handle, &connection_handle);
 
@@ -151,9 +186,8 @@ public:
     }
 };
 
-class RawHandle
+struct RawHandle
 {
-public:
     virtual Handle &handle() = 0;
 };
 

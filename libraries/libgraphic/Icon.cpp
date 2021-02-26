@@ -1,10 +1,12 @@
 #include <assert.h>
-#include <libgraphic/Icon.h>
-#include <libsystem/Logger.h>
-#include <libsystem/Path.h>
-#include <libutils/HashMap.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <libutils/HashMap.h>
+#include <libio/Format.h>
+#include <libsystem/Logger.h>
+#include <libsystem/Path.h>
+#include <libgraphic/Icon.h>
 
 static HashMap<String, RefPtr<Icon>> _icons{};
 
@@ -20,7 +22,7 @@ static RefPtr<Icon> icon_load(String name)
 
     for (size_t i = 0; i < __ICON_SIZE_COUNT; i++)
     {
-        auto path = String::format("/Files/Icons/{}@{}px.png", name, _icon_size_names[i]);
+        auto path = IO::format("/Files/Icons/{}@{}px.png", name, _icon_size_names[i]);
         auto bitmap_or_result = Bitmap::load_from(path);
 
         if (bitmap_or_result.success())

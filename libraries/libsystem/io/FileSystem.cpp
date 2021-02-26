@@ -1,36 +1,60 @@
-#include <libsystem/core/Plugs.h>
+#include <libsystem/Handle.h>
 #include <libsystem/io/Filesystem.h>
+#include <abi/Syscalls.h>
 
 namespace System
 {
 
-bool exist(const char *path, FileType type)
+Result link(const String &old_path, const String &new_path)
 {
-    Handle handle;
-    __plug_handle_open(&handle, path, 0);
+    return hj_filesystem_link(
+        old_path.cstring(),
+        old_path.length(),
+        new_path.cstring(),
+        new_path.length());
+}
 
-    if (handle_has_error(&handle))
+Result unlink(const String &path)
+{
+    return hj_filesystem_unlink(path.cstring(), path.length());
+}
+
+Result mkdir(const String &path)
+{
+    return hj_filesystem_mkdir(path.cstring(), path.length());
+}
+
+Result mkpipe(const String &path)
+{
+    return hj_filesystem_mkpipe(path.cstring(), path.length());
+}
+
+Result rename(const String &old_path, const String &new_path)
+{
+    return hj_filesystem_rename(
+        old_path.cstring(),
+        old_path.length(),
+        new_path.cstring(),
+        new_path.length());
+}
+
+bool exist(const String &path, FileType type)
+{
+    Handle handle{path, 0};
+
+    if (!handle.valid())
     {
         return false;
     }
 
-    FileState state;
-    __plug_handle_stat(&handle, &state);
+    auto stat_result = handle.stat();
 
-    if (handle_has_error(&handle))
+    if (!stat_result)
     {
-        __plug_handle_close(&handle);
         return false;
     }
 
-    if (state.type != type)
-    {
-        __plug_handle_close(&handle);
-        return false;
-    }
-
-    __plug_handle_close(&handle);
-    return true;
+    return ((*stat_result).type == type);
 }
 
 } // namespace System

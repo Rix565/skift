@@ -3,8 +3,8 @@
 #include <math.h>
 #include <string.h>
 
-#include <libio/Writer.h>
 #include <libutils/Strings.h>
+#include <libio/Writer.h>
 
 namespace IO
 {
@@ -48,7 +48,7 @@ struct NumberFormat
 
         if (is_negative)
         {
-            writer.write('-');
+            write_char(writer, '-');
             value = -value;
         }
 
@@ -68,7 +68,7 @@ struct NumberFormat
     {
         if (value == 0)
         {
-            auto zero_result = writer.write('0');
+            auto zero_result = write_char(writer, '0');
 
             if (zero_result == SUCCESS)
             {
@@ -124,7 +124,7 @@ struct NumberFormat
 
         if (_precision > 0)
         {
-            auto dot_result = writer.write('.');
+            auto dot_result = write_char(writer, '.');
 
             if (dot_result != SUCCESS)
             {

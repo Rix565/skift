@@ -1,24 +1,22 @@
-#include <libutils/ScannerUtils.h>
-
+#include <libio/Format.h>
 #include <libsettings/Path.h>
 
 namespace Settings
 {
 
-Path Path::parse(Scanner &scan)
+Path Path::parse(IO::Scanner &scan)
 {
     Path path;
 
     auto parse_string = [&](char sep) {
-        StringBuilder build;
-
+        IO::MemoryWriter memory;
         while (scan.current() != sep && scan.do_continue())
         {
-            build.append(scan.current());
+            IO::write_char(memory, scan.current());
             scan.forward();
         }
 
-        return build.finalize();
+        return memory.string();
     };
 
     path.domain = parse_string(':');
@@ -42,23 +40,21 @@ Path Path::parse(Scanner &scan)
 
 Path Path::parse(const String &str)
 {
-    StringScanner scan{str.cstring(), str.length()};
+    IO::MemoryReader reader{str.slice()};
+    IO::Scanner scan{reader};
     return parse(scan);
 };
 
 Path Path::parse(const char *str, size_t size)
 {
-    StringScanner scan{str, size};
+    IO::MemoryReader reader{str, size};
+    IO::Scanner scan{reader};
     return parse(scan);
 };
 
-void Path::prettify(Prettifier &pretty) const
+void Path::prettify(IO::Prettifier &pretty) const
 {
-    pretty.append(domain);
-    pretty.append(':');
-    pretty.append(bundle);
-    pretty.append('.');
-    pretty.append(key);
+    IO::format(pretty, "{}:{}.{}", domain, bundle, key);
 }
 
 bool Path::match(const Path &other) const

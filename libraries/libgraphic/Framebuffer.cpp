@@ -41,10 +41,6 @@ Framebuffer::Framebuffer(System::Handle &&handle, RefPtr<Bitmap> bitmap)
 {
 }
 
-Framebuffer::~Framebuffer()
-{
-}
-
 Result Framebuffer::set_resolution(Vec2i size)
 {
     auto bitmap_or_result = Bitmap::create_shared(size.x(), size.y());
