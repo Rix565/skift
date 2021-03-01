@@ -168,4 +168,11 @@ inline Value parse(IO::Scanner &scan)
     return value(scan);
 }
 
+inline Value parse(const String &str)
+{
+    IO::MemoryReader memory{str.slice()};
+    IO::Scanner scan{memory};
+    return value(scan);
+}
+
 } // namespace Json

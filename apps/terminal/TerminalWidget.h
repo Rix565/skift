@@ -1,9 +1,8 @@
 #pragma once
 
-#include <libgraphic/Font.h>
 #include <libsystem/eventloop/Notifier.h>
 #include <libsystem/eventloop/Timer.h>
-#include <libsystem/io/Stream.h>
+#include <libgraphic/Font.h>
 #include <libterminal/Terminal.h>
 #include <libwidget/Widget.h>
 

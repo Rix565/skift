@@ -2,9 +2,9 @@
 
 #include <assert.h>
 
-#include <libsystem/Result.h>
 #include <libutils/Move.h>
 #include <libutils/Optional.h>
+#include <libsystem/Result.h>
 
 template <typename T>
 class ResultOr
@@ -68,3 +68,17 @@ public:
 
     const T *operator->() const { return &value(); }
 };
+
+static inline Result __extract_result(Result r) { return r; }
+
+template <typename T>
+static inline Result __extract_result(ResultOr<T> r) { return r.result(); };
+
+#define TRY(__stuff)                                 \
+    {                                                \
+        auto __result__ = __extract_result(__stuff); \
+        if (__result__ != SUCCESS)                   \
+        {                                            \
+            return __result__;                       \
+        }                                            \
+    }

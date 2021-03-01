@@ -32,7 +32,7 @@ struct Formating
     bool prefix;
     Type type = DEFAULT;
 
-    static Formating parse(Scanner &scanner)
+    static Formating parse_format(Scanner &scanner)
     {
         Formating format{};
 

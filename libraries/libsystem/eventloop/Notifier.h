@@ -8,12 +8,12 @@
 class Notifier
 {
 private:
-    System::Handle &_handle;
+    RefPtr<System::Handle> _handle;
     PollEvent _events;
     Callback<void()> _callback;
 
 public:
-    System::Handle &handle() { return _handle; }
+    RefPtr<System::Handle> handle() { return _handle; }
     PollEvent events() { return _events; }
 
     Notifier(System::RawHandle &handle, PollEvent events, Callback<void()> callback)

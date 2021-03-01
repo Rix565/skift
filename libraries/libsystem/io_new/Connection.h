@@ -10,23 +10,26 @@ namespace System
 
 class Connection final :
     public IO::Reader,
-    public IO::Writer
+    public IO::Writer,
+    public RawHandle
 {
 private:
-    System::Handle _handle;
+    RefPtr<System::Handle> _handle;
 
 public:
-    Connection(System::Handle &&handle)
-        : _handle{move(handle)} {}
+    RefPtr<Handle> handle() override { return _handle; }
+
+    Connection(RefPtr<System::Handle> handle)
+        : _handle{handle} {}
 
     ResultOr<size_t> read(void *buffer, size_t size) override
     {
-        return _handle.read(buffer, size);
+        return _handle->read(buffer, size);
     }
 
     ResultOr<size_t> write(const void *buffer, size_t size) override
     {
-        return _handle.write(buffer, size);
+        return _handle->write(buffer, size);
     }
 };
 

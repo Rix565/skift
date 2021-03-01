@@ -1,5 +1,6 @@
 #pragma once
 
+#include <libsystem/io_new/Socket.h>
 #include <libipc/Peer.h>
 #include <libsettings/Protocol.h>
 
@@ -11,16 +12,20 @@ class ServerConnection : public ipc::Peer<Protocol>
 public:
     Callback<void(const Path &path, const Json::Value &value)> on_notify;
 
-    static OwnPtr<ServerConnection> open()
+    static ResultOr<OwnPtr<ServerConnection>> open()
     {
-        return own<ServerConnection>(socket_connect("/Session/settings.ipc"));
+        auto connect_result = System::Socket::connect("/Session/settings.ipc");
+        TRY(connect_result);
+        return own<ServerConnection>(connect_result.take_value());
     }
 
-    ServerConnection(Connection *connection) : Peer(connection)
+    ServerConnection(System::Connection &&connection)
+        : Peer(move(connection))
     {
     }
 
-    ResultOr<Message> request(Message message, Message::Type expected)
+    ResultOr<Message>
+    request(Message message, Message::Type expected)
     {
         return send_and_wait_for(message, [&](const Message &incoming) { return incoming.type == expected; });
     }

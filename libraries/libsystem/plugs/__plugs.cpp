@@ -4,9 +4,10 @@
 
 #include <libsystem/Logger.h>
 #include <libsystem/core/Plugs.h>
-#include <libsystem/io/Stream.h>
 #include <libsystem/process/Process.h>
 #include <libsystem/system/Memory.h>
+
+#include <libsystem/io_new/Streams.h>
 
 static Lock _logger_lock{"logger_lock"};
 
@@ -31,6 +32,7 @@ void __plug_logger_unlock()
 
 void __no_return __plug_logger_fatal()
 {
+    System::outln();
     stream_format(err_stream, "Fatal error occurred (see logs)!\n");
     process_abort();
 }

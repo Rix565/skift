@@ -1,7 +1,7 @@
 
-#include <assert.h>
 #include <libsystem/Logger.h>
 #include <libsystem/math/MinMax.h>
+#include <assert.h>
 #include <libterminal/Terminal.h>
 
 namespace terminal
@@ -518,7 +518,6 @@ void Terminal::write(Codepoint codepoint)
         break;
 
     default:
-        logger_trace("ok wtf is going on here ? %d", _state);
         ASSERT_NOT_REACHED();
     }
 }

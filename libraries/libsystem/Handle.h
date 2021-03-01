@@ -2,22 +2,23 @@
 
 #include <abi/Syscalls.h>
 
-#include <libsystem/process/Process.h>
-
 #include <libutils/Optional.h>
 #include <libutils/ResultOr.h>
 #include <libutils/String.h>
+#include <libio/Seek.h>
+#include <libsystem/process/Process.h>
 
 namespace System
 {
 
-class Handle
+class Handle : public RefCounted<Handle>
 {
 private:
     int _handle = HANDLE_INVALID_ID;
     Result _result = ERR_BAD_HANDLE;
 
     __noncopyable(Handle);
+    __nonmovable(Handle);
 
 public:
     Handle(int handle) : _handle(handle), _result(handle != HANDLE_INVALID_ID ? SUCCESS : ERR_BAD_HANDLE)
@@ -30,27 +31,21 @@ public:
         _result = hj_handle_open(&_handle, resolved_path.cstring(), resolved_path.length(), flags);
     }
 
-    Handle(Handle &&other)
-    {
-        _handle = exchange_and_return_initial_value(other._handle, HANDLE_INVALID_ID);
-        _result = exchange_and_return_initial_value(other._result, ERR_BAD_HANDLE);
-    }
-
-    Handle &operator=(Handle &&other)
-    {
-        swap(_handle, other._handle);
-        swap(_result, other._result);
-
-        return *this;
-    }
-
     ~Handle()
     {
-        if (_handle != HANDLE_INVALID_ID)
+        close();
+    }
+
+    Result close()
+    {
+        if (_handle == HANDLE_INVALID_ID)
         {
-            hj_handle_close(_handle);
-            _handle = HANDLE_INVALID_ID;
+            return ERR_STREAM_CLOSED;
         }
+
+        auto result = hj_handle_close(_handle);
+        _handle = HANDLE_INVALID_ID;
+        return result;
     }
 
     ResultOr<size_t> read(void *buffer, size_t size)
@@ -104,18 +99,18 @@ public:
         return _result;
     }
 
-    Result seek(int offset, HjWhence whence)
+    Result seek(IO::SeekFrom from)
     {
         if (!valid())
         {
             return ERR_STREAM_CLOSED;
         }
 
-        _result = hj_handle_seek(_handle, offset, whence);
+        _result = hj_handle_seek(_handle, from.position, (HjWhence)from.whence);
         return _result;
     }
 
-    ResultOr<int> tell(HjWhence whence)
+    ResultOr<int> tell()
     {
         if (!valid())
         {
@@ -123,7 +118,7 @@ public:
         }
 
         int offset = 0;
-        _result = hj_handle_tell(_handle, whence, &offset);
+        _result = hj_handle_tell(_handle, HJ_WHENCE_START, &offset);
 
         if (_result != SUCCESS)
         {
@@ -155,7 +150,7 @@ public:
         }
     }
 
-    ResultOr<Handle> accept()
+    ResultOr<RefPtr<Handle>> accept()
     {
         if (!valid())
         {
@@ -171,7 +166,7 @@ public:
         }
         else
         {
-            return Handle{connection_handle};
+            return make<Handle>(connection_handle);
         }
     }
 
@@ -188,7 +183,17 @@ public:
 
 struct RawHandle
 {
-    virtual Handle &handle() = 0;
+    virtual RefPtr<Handle> handle() = 0;
 };
+
+bool valid(RawHandle &raw)
+{
+    return raw.handle() != nullptr && raw.handle()->valid();
+}
+
+bool close(RawHandle &raw)
+{
+    return raw.handle() != nullptr && raw.handle()->close() == SUCCESS;
+}
 
 } // namespace System

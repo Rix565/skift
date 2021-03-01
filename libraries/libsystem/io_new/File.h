@@ -11,19 +11,22 @@ namespace System
 class File final :
     public IO::Reader,
     public IO::Writer,
-    public IO::Seek
+    public IO::Seek,
+    public RawHandle
 {
 private:
-    System::Handle _handle;
+    RefPtr<System::Handle> _handle;
     Optional<Path> _path;
 
 public:
+    RefPtr<Handle> handle() override { return _handle; }
     const Optional<Path> &path() { return _path; }
 
+    File();
     File(const char *path, OpenFlag flags);
     File(String path, OpenFlag flags);
     File(Path &path, OpenFlag flags);
-    File(System::Handle &&handle);
+    File(RefPtr<System::Handle> handle);
 
     ResultOr<size_t> read(void *buffer, size_t size) override;
     ResultOr<size_t> write(const void *buffer, size_t size) override;

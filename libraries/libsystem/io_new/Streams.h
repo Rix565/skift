@@ -17,13 +17,20 @@ class InStream :
     public RawHandle
 {
 private:
-    Handle _handle{0};
+    RefPtr<Handle> _handle;
 
 public:
-    using Reader::read;
+    InStream() : _handle{make<Handle>(0)} {}
 
-    ResultOr<size_t> read(void *buffer, size_t size) override { return _handle.read(buffer, size); }
-    Handle &handle() override { return _handle; }
+    ResultOr<size_t> read(void *buffer, size_t size) override
+    {
+        if (!_handle)
+            return ERR_STREAM_CLOSED;
+
+        return _handle->read(buffer, size);
+    }
+
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 class OutStream :
@@ -31,13 +38,20 @@ class OutStream :
     public RawHandle
 {
 private:
-    Handle _handle{1};
+    RefPtr<Handle> _handle;
 
 public:
-    using Writer::write;
+    OutStream() : _handle{make<Handle>(1)} {}
 
-    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle.write(buffer, size); }
-    Handle &handle() override { return _handle; }
+    ResultOr<size_t> write(const void *buffer, size_t size) override
+    {
+        if (!_handle)
+            return ERR_STREAM_CLOSED;
+
+        return _handle->write(buffer, size);
+    }
+
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 class ErrStream :
@@ -46,13 +60,20 @@ class ErrStream :
 
 {
 private:
-    Handle _handle{2};
+    RefPtr<Handle> _handle;
 
 public:
-    using Writer::write;
+    ErrStream() : _handle{make<Handle>(2)} {}
 
-    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle.write(buffer, size); }
-    Handle &handle() override { return _handle; }
+    ResultOr<size_t> write(const void *buffer, size_t size) override
+    {
+        if (!_handle)
+            return ERR_STREAM_CLOSED;
+
+        return _handle->write(buffer, size);
+    }
+
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 class LogStream :
@@ -60,13 +81,20 @@ class LogStream :
     public RawHandle
 {
 private:
-    Handle _handle{3};
+    RefPtr<Handle> _handle;
 
 public:
-    using Writer::write;
+    LogStream() : _handle{make<Handle>(3)} {}
 
-    ResultOr<size_t> write(const void *buffer, size_t size) override { return _handle.write(buffer, size); }
-    Handle &handle() override { return _handle; }
+    ResultOr<size_t> write(const void *buffer, size_t size) override
+    {
+        if (!_handle)
+            return ERR_STREAM_CLOSED;
+
+        return _handle->write(buffer, size);
+    }
+
+    RefPtr<Handle> handle() override { return _handle; }
 };
 
 InStream &in();
@@ -85,11 +113,11 @@ static inline ResultOr<String> inln()
     while (!(scan.ended() || scan.current() == '\n'))
     {
         writer.write(scan.current());
-        out().write(scan.current());
+        IO::write_char(out(), scan.current());
         scan.forward();
     }
 
-    out().write('\n');
+    IO::write_char(out(), '\n ');
     scan.skip('\n');
 
     return String{writer.string()};

@@ -9,15 +9,15 @@
 
 ResultOr<OwnPtr<Framebuffer>> Framebuffer::open()
 {
-    System::Handle handle{FRAMEBUFFER_DEVICE_PATH, OPEN_READ | OPEN_WRITE};
+    auto handle = make<System::Handle>(FRAMEBUFFER_DEVICE_PATH, OPEN_READ | OPEN_WRITE);
 
-    if (!handle.valid())
+    if (!handle->valid())
     {
-        return handle.result();
+        return handle->result();
     }
 
     IOCallDisplayModeArgs mode_info = {};
-    auto result = handle.call(IOCALL_DISPLAY_GET_MODE, &mode_info);
+    auto result = handle->call(IOCALL_DISPLAY_GET_MODE, &mode_info);
 
     if (result != SUCCESS)
     {
@@ -31,11 +31,11 @@ ResultOr<OwnPtr<Framebuffer>> Framebuffer::open()
         return bitmap_or_error.result();
     }
 
-    return own<Framebuffer>(move(handle), bitmap_or_error.take_value());
+    return own<Framebuffer>(handle, bitmap_or_error.take_value());
 }
 
-Framebuffer::Framebuffer(System::Handle &&handle, RefPtr<Bitmap> bitmap)
-    : _handle{move(handle)},
+Framebuffer::Framebuffer(RefPtr<System::Handle> handle, RefPtr<Bitmap> bitmap)
+    : _handle{handle},
       _bitmap{bitmap},
       _painter{bitmap}
 {
@@ -52,7 +52,7 @@ Result Framebuffer::set_resolution(Vec2i size)
 
     IOCallDisplayModeArgs mode_info = (IOCallDisplayModeArgs){size.x(), size.y()};
 
-    auto result = _handle.call(IOCALL_DISPLAY_SET_MODE, &mode_info);
+    auto result = _handle->call(IOCALL_DISPLAY_SET_MODE, &mode_info);
 
     if (result != SUCCESS)
     {
@@ -121,7 +121,7 @@ void Framebuffer::blit()
         args.blit_width = bound.width();
         args.blit_height = bound.height();
 
-        auto result = _handle.call(IOCALL_DISPLAY_BLIT, &args);
+        auto result = _handle->call(IOCALL_DISPLAY_BLIT, &args);
 
         if (result != SUCCESS)
         {

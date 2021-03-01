@@ -8,7 +8,7 @@
 class Framebuffer
 {
 private:
-    System::Handle _handle;
+    RefPtr<System::Handle> _handle;
 
     RefPtr<Bitmap> _bitmap;
     Painter _painter;
@@ -22,7 +22,7 @@ public:
 
     Recti resolution() { return _bitmap->bound(); }
 
-    Framebuffer(System::Handle &&handle, RefPtr<Bitmap> bitmap);
+    Framebuffer(RefPtr<System::Handle> _handle, RefPtr<Bitmap> bitmap);
 
     Result set_resolution(Vec2i size);
 

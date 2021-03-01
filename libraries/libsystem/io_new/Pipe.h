@@ -1,7 +1,7 @@
 #pragma once
 
-#include <abi/Syscalls.h>
 #include <libsystem/io_new/File.h>
+#include <abi/Syscalls.h>
 
 namespace System
 {
@@ -21,10 +21,10 @@ public:
         int reader_handle = HANDLE_INVALID_ID;
         int writer_handle = HANDLE_INVALID_ID;
 
-        hj_create_pipe(&reader_handle, writer_handle);
+        hj_create_pipe(&reader_handle, &writer_handle);
 
-        _reader = {reader_handle};
-        _writer = {writer_handle};
+        _reader = {make<Handle>(reader_handle)};
+        _writer = {make<Handle>(writer_handle)};
     }
 };
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libsystem/eventloop/Notifier.h>
-#include <libsystem/io/Socket.h>
 #include <libsystem/io_new/Connection.h>
 
 #include <libutils/Callback.h>
@@ -20,13 +19,13 @@ private:
 public:
     bool connected()
     {
-        return _connection != nullptr;
+        return System::valid(_connection);
     }
 
-    Peer(Connection &&connection)
-        : _connection{move{connection}}
+    Peer(System::Connection &&connection)
+        : _connection{move(connection)}
     {
-        _notifier = own<Notifier>(HANDLE(_connection), POLL_READ, [this]() {
+        _notifier = own<Notifier>(_connection, POLL_READ, [this]() {
             auto result_or_message = Protocol::decode_message(_connection);
 
             if (result_or_message)
@@ -59,11 +58,6 @@ public:
 
     ResultOr<typename Protocol::Message> receive()
     {
-        if (!_connection)
-        {
-            return ERR_STREAM_CLOSED;
-        }
-
         auto result_or_message = Protocol::decode_message(_connection);
 
         if (!result_or_message.success())
@@ -98,14 +92,12 @@ public:
 
     void close()
     {
-        if (_connection)
+        if (System::valid(_connection))
         {
             handle_disconnect();
 
             _notifier = nullptr;
-
-            connection_close(_connection);
-            _connection = nullptr;
+            System::close(_connection);
         }
     }
 
