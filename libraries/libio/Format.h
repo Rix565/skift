@@ -1,6 +1,8 @@
 #pragma once
 
+#include <libio/Formatter.h>
 #include <libio/MemoryReader.h>
+#include <libio/NumberScanner.h>
 #include <libio/Scanner.h>
 #include <libio/Write.h>
 
@@ -9,107 +11,16 @@ class String;
 namespace IO
 {
 
-struct Formating
-{
-    enum Align
-    {
-        LEFT,
-        CENTER,
-        RIGHT,
-    };
-
-    enum Type
-    {
-        DEFAULT,
-        STRING,
-        CHARACTER,
-        BINARY,
-        DECIMAL,
-        OCTAL,
-        HEXADECIMAL,
-    };
-
-    bool prefix;
-    Type type = DEFAULT;
-
-    static Formating parse_format(Scanner &scanner)
-    {
-        Formating format{};
-
-        scanner.skip('{');
-
-        auto parse_type = [&]() {
-            switch (scanner.current())
-            {
-            case 's':
-                format.type = STRING;
-                break;
-
-            case 'c':
-                format.type = CHARACTER;
-                break;
-
-            case 'b':
-                format.type = BINARY;
-                break;
-
-            case 'd':
-                format.type = DECIMAL;
-                break;
-
-            case 'o':
-                format.type = OCTAL;
-                break;
-
-            case 'x':
-                format.type = HEXADECIMAL;
-                break;
-
-            default:
-                break;
-            }
-        };
-
-        if (scanner.current_is("scbdox"))
-        {
-            parse_type();
-            scanner.forward();
-        }
-
-        while (!scanner.ended() && scanner.current() != '}')
-        {
-            scanner.forward();
-        }
-
-        scanner.skip('}');
-
-        return format;
-    }
-};
-
 struct Format
 {
     virtual ResultOr<size_t> format(Writer &writer);
 };
 
 template <typename T>
-concept Formatable = IsBaseOf<Format, T>::value || requires(Writer &writer, const Formating &formating, const T &t)
+concept Formatable = IsBaseOf<Format, T>::value || requires(Writer &writer, Formatter &fmt, const T &t)
 {
-    format(writer, formating, t);
+    fmt.format(writer, t);
 };
-
-ResultOr<size_t> format(Writer &, const Formating &, char);
-ResultOr<size_t> format(Writer &, const Formating &, unsigned char);
-ResultOr<size_t> format(Writer &, const Formating &, short int);
-ResultOr<size_t> format(Writer &, const Formating &, unsigned short int);
-ResultOr<size_t> format(Writer &, const Formating &, int);
-ResultOr<size_t> format(Writer &, const Formating &, unsigned int);
-ResultOr<size_t> format(Writer &, const Formating &, long int);
-ResultOr<size_t> format(Writer &, const Formating &, unsigned long int);
-ResultOr<size_t> format(Writer &, const Formating &, float);
-ResultOr<size_t> format(Writer &, const Formating &, double);
-ResultOr<size_t> format(Writer &, const Formating &, const char *);
-ResultOr<size_t> format(Writer &, const Formating &, const String);
 
 static inline ResultOr<size_t> format(Writer &writer, Scanner &scanner)
 {
@@ -151,7 +62,7 @@ static inline ResultOr<size_t> format(Writer &writer, Scanner &scanner, First fi
 
     if (scanner.current() == '{')
     {
-        auto formating = Formating::parse(scanner);
+        auto formatter = Formatter::parse(scanner);
 
         auto format_proxy = [&]() {
             if constexpr (IsBaseOf<Format, First>::value)
@@ -159,10 +70,10 @@ static inline ResultOr<size_t> format(Writer &writer, Scanner &scanner, First fi
                 return first.format(writer);
             }
             else if constexpr (requires(const First &t) {
-                                   format(writer, formating, t);
+                                   formatter.format(writer, t);
                                })
             {
-                return format(writer, formating, first);
+                return formatter.format(writer, first);
             }
             else
             {
