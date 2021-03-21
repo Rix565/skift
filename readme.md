@@ -8,7 +8,9 @@
   <a href="https://github.com/skiftOS/skift/releases">Releases</a>
 </p>
 
-# skiftOS
+# skiftOS Beta Fork
+
+**Warning : this fork is not official, and the releases of skiftOS from here are not stable.**
 
 [![Tests](https://github.com/skiftOS/skift/actions/workflows/tests.yml/badge.svg)](https://github.com/skiftOS/skift/actions/workflows/tests.yml)
 [![Deploy](https://github.com/skiftOS/skift/actions/workflows/deploy.yml/badge.svg)](https://github.com/skiftOS/skift/actions/workflows/deploy.yml)
