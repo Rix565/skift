@@ -14,7 +14,7 @@
 
 [![Tests](https://github.com/skiftOS/skift/actions/workflows/tests.yml/badge.svg)](https://github.com/skiftOS/skift/actions/workflows/tests.yml)
 [![Deploy](https://github.com/skiftOS/skift/actions/workflows/deploy.yml/badge.svg)](https://github.com/skiftOS/skift/actions/workflows/deploy.yml)
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/skiftOS/skift?include_prereleases)](https://github.com/skiftOS/skift/releases)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/rix565/skiftos-beta?include_prereleases)](https://github.com/skiftOS/skift/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/skiftOS/skift)](https://github.com/skiftOS/skift/commits)
 [![GitHub issues](https://img.shields.io/github/issues-raw/skiftOS/skift)](https://github.com/skiftOS/skift/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/skiftOS/skift)](https://github.com/skiftOS/skift/pulls)
