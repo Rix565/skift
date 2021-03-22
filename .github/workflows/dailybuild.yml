@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         run : |
+          git clone https://github.com/rix565/skiftos-dailybuild.git
+          cd skiftos-dailybuild
           git pull https://github.com/skiftOS/skift.git
 
       - name: Installing dependencies
