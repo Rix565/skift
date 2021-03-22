@@ -8,7 +8,7 @@
   <a href="https://github.com/skiftOS/skift/releases">Releases</a>
 </p>
 
-# skiftOS Beta Fork
+# skiftOS DailyBuild Fork
 
 **Warning : this fork is not official, and the releases of skiftOS from here are not stable.**
 
