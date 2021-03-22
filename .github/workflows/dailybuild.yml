@@ -20,14 +20,12 @@ jobs:
 
       - name: Installing dependencies
         run: |
-         sudo apt update
-         sudo apt install -y nasm gcc make binutils grub-pc-bin qemu-system-x86
-         sudo apt install -y build-essential bison flex libgmp3-dev libmpc-dev
-         sudo apt install -y xorriso mtools imagemagick libmpfr-dev texinfo libfuse-dev
-         sudo apt install -y gcc-multilib clang-tidy uuid-dev
+         cd skiftos-dailybuild
+         sudo toolchain/install-dependencies.sh
 
       - name: Fetching submodules
         run: |
+          cd skiftos-dailybuild
           git submodule update --init --recursive
 
       - name: Cache cross-toolchain
@@ -44,10 +42,12 @@ jobs:
 
       - name: Building cross-toolchain
         run: |
+          cd skiftos-dailybuild
           toolchain/build-it.sh
 
       - name: Building skiftOS (x86_32)
         run: |
+          cd skiftos-dailybuild
           make clean
           make all CONFIG=release CONFIG_LOADER=grub
           make all CONFIG=release CONFIG_LOADER=limine
@@ -55,6 +55,7 @@ jobs:
 
       - name: Building skiftOS (x86_64)
         run: |
+          cd skiftos-dailybuild
           make clean
           make all CONFIG=release CONFIG_ARCH=x86_64 CONFIG_LOADER=limine
           echo "RELEASE_TAG=$(date +'%y.%W')" >> $GITHUB_ENV
@@ -67,7 +68,7 @@ jobs:
         with:
           tag_name: v"date +'%y.%W.%d-db'"
           release_name: v"date +'%y.%W-%d-dailybuild'"
-          body_path: .github/release.md
+          body_path: skiftos-dailybuild/.github/release.md
           draft: false
           prerelease: true
 
@@ -78,7 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: disks/bootdisk-grub-x86_32.img
+          asset_path: skiftos-dailybuild/disks/bootdisk-grub-x86_32.img
           asset_name: bootdisk-grub-x86_32.img
           asset_content_type: application/x-ima
 
@@ -89,7 +90,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: disks/bootdisk-limine-x86_32.img
+          asset_path: skiftos-dailybuild/disks/bootdisk-limine-x86_32.img
           asset_name: bootdisk-limine-x86_32.img
           asset_content_type: application/x-ima
 
@@ -100,6 +101,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: disks/bootdisk-limine-x86_64.img
+          asset_path: skiftos-dailybuild/disks/bootdisk-limine-x86_64.img
           asset_name: bootdisk-limine-x86_64.img
           asset_content_type: application/x-ima
