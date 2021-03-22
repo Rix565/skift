@@ -16,12 +16,15 @@ jobs:
           cd skiftos-dailybuild
           git config --global user.email "rix.gui@mail.com"
           git config --global user.name "Rix565"
-          git config pull.rebase true
           git pull https://github.com/skiftOS/skift.git
 
       - name: Installing dependencies
         run: |
-          sudo toolchain/install-dependencies.sh
+         apt update
+         apt install -y nasm gcc make binutils grub-pc-bin qemu-system-x86
+         apt install -y build-essential bison flex libgmp3-dev libmpc-dev
+         apt install -y xorriso mtools imagemagick libmpfr-dev texinfo libfuse-dev
+         apt install -y gcc-multilib clang-tidy uuid-dev
 
       - name: Fetching submodules
         run: |
