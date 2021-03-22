@@ -14,7 +14,8 @@ jobs:
         run : |
           git clone https://github.com/rix565/skiftos-dailybuild.git
           cd skiftos-dailybuild
-          git config --global
+          git config --global user.email "rix.gui@mail.com"
+          git config --global user.name "Rix565"
           git pull https://github.com/skiftOS/skift.git
 
       - name: Installing dependencies
