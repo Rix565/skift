@@ -16,6 +16,7 @@ jobs:
           cd skiftos-dailybuild
           git config --global user.email "rix.gui@mail.com"
           git config --global user.name "Rix565"
+          git config pull.rebase true
           git pull https://github.com/skiftOS/skift.git
 
       - name: Installing dependencies
